@@ -1,10 +1,15 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.neenbedankt.android-apt'
+apply plugin: 'me.tatarka.retrolambda'
 
 android {
     compileSdkVersion rootProject.ext.android["compileSdkVersion"]
     buildToolsVersion rootProject.ext.android["buildToolsVersion"]
     useLibrary 'org.apache.http.legacy'
+
+    compileOptions {
+        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8
+    }
 
     defaultConfig {
         applicationId "me.jessyan.mvparms.demo"
@@ -26,8 +31,9 @@ android {
         release {
             buildConfigField "boolean", "LOG_DEBUG", "false"
             buildConfigField "boolean", "USE_CANARY", "false"
-            minifyEnabled false
+            minifyEnabled true
             shrinkResources true
+            zipAlignEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -42,22 +48,31 @@ android {
 buildscript {
     repositories {
         jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
     }
 }
 
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile rootProject.ext.dependencies["junit"]
-    apt rootProject.ext.dependencies["dagger2-apt-compiler"]
+    //support
+    compile(rootProject.ext.dependencies["cardview-v7"]) {
+        exclude module: 'support-annotations'
+    }
+    //tools
     provided rootProject.ext.dependencies["javax.annotation"]
-    apt rootProject.ext.dependencies["butterknife-apt"]
-    compile project(':arms')
+    annotationProcessor rootProject.ext.dependencies["dagger2-compiler"]
+    compile rootProject.ext.dependencies["progressmanager"]
+    //view
+    annotationProcessor(rootProject.ext.dependencies["butterknife-compiler"]) {
+        exclude module: 'support-annotations'
+        exclude module: 'butterknife-annotations'
+    }
     compile rootProject.ext.dependencies["paginate"]
+    //arms
+    compile project(':arms')
+//    compile 'me.jessyan:arms:2.1.0'
+    //test
+    testCompile rootProject.ext.dependencies["junit"]
     debugCompile rootProject.ext.dependencies["canary-debug"]
     releaseCompile rootProject.ext.dependencies["canary-release"]
     testCompile rootProject.ext.dependencies["canary-release"]
